@@ -1,0 +1,89 @@
+# Test 0 ASYMMETRIC TRUTH + combined 4-channel nudge (Phase D1).
+# Mirrors test0_asymmetric_combined.yaml but adds the new velocity_d2tobs
+# channel — the first v-dependent force in the augmented functional, the
+# only one that can drive the v-marginal variance toward truth.
+#
+# position_d2tobs (the bilinear-quadratic position channel) is DISABLED
+# per docs/second_derivative_observation_plan.md pitfall §4.5: "In the
+# first acceptance run, disable position_d2tobs and turn on only
+# velocity_d2tobs ..."
+#
+# Acceptance gate (D1): e_f < 0.84 (snapshot-position floor on this IC).
+# A pass means the new mechanism is doing real work on the bimodal-vs-
+# Maxwellian variance mismatch that the 3-channel combined nudge could
+# not move.
+
+name: test0_asymmetric_combined4
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: asymmetric_two_peak
+  alpha: 0.5
+  u_pos: 1.5
+  u_neg: -1.0
+  w_pos: 0.5
+
+assim_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.5
+  sigma: 1.0
+
+pic:
+  Nx: 128
+  Np: 1000000
+  dt: 1.0e-2
+  n_steps: 4000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+  time_second_derivative:
+    enabled: true
+    lowpass_k_cut_frac: 0.15
+    lowpass_sharpness: 16.0
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  # NEW: velocity_d2tobs. The `alpha` field here is interpreted as beta
+  # (the coefficient on the (1/2)|d^2 phi - w|^2 term).
+  velocity_d2tobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  # position_d2tobs explicitly omitted/disabled — see file header.
+  lowpass_k_cut_frac: 0.40
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

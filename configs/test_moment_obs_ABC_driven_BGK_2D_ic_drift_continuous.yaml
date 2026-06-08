@@ -1,0 +1,94 @@
+name: test_moment_obs_ABC_driven_BGK_2D_ic_drift_continuous
+seed: 0
+
+# 2D2V drift-mismatch + continuous oblique driver.
+#
+# Physical setup
+# --------------
+# Domain: (kx, ky) = (1, 1) => Lx = Ly = 2 pi, |k| = sqrt(2).
+# truth   IC: spatially uniform Maxwellian, u=0, T=1.
+# assim   IC: same shape, but mean velocity u* = 0.3/sqrt(2) (1, 1)
+#             ~ (0.212, 0.212), i.e. drift of magnitude 0.3 along k_hat.
+# Both sides see identical F_ext (continuous oblique traveling wave with
+# half-cosine ramp-on). The driver is set to (approximately) Bohm-Gross
+# resonance at T=1:
+#     omega_BG^2 = 1 + 3 |k|^2 T = 1 + 6 = 7   ->   omega ~ 2.6458.
+# Truth (u=0) sees the resonant driver; assim sees Doppler-shifted
+#     omega_eff = omega - k . u* = 2.6458 - sqrt(2) * 0.3 ~ 2.2215,
+# i.e. off-resonance. The two sides therefore build different driven
+# responses to the *same* forcing, giving ABC a persistent mismatch source
+# (current residual r_1 is the relevant channel -- that is what
+# Formulation B's grad_v Phi_M acts on).
+#
+# Weak BGK keeps the relaxation slow so the drift does not equilibrate
+# during the run.
+
+domain:
+  kx: 1.0
+  ky: 1.0
+
+truth_ic:
+  kind: wrong_maxwellian_2d
+  rho_amp: 0.0
+  ux_star: 0.0
+  uy_star: 0.0
+  T_star: 1.0
+
+assim_ic:
+  kind: wrong_maxwellian_2d
+  rho_amp: 0.0
+  ux_star: 0.2121320343559643    # 0.3 / sqrt(2)
+  uy_star: 0.2121320343559643
+  T_star: 1.0
+
+pic:
+  Nx: 64
+  Ny: 64
+  Np: 200000
+  dt: 0.05
+  n_steps: 2000                  # T = 100
+
+collision:
+  kind: bgk
+  nu: 0.005                      # weak
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: oblique_traveling_continuous
+  A: 0.2                         # force amplitude; bump to 0.3 if too dim
+  kx_d: 1.0
+  ky_d: 1.0
+  omega: 2.6457513110645907      # Bohm-Gross at |k|=sqrt(2), T=1
+  ramp_time: 2.0
+  theta: 0.0
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: A_var
+  A_var:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+  B:
+    gamma: 1.0
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+
+diagnostics:
+  every_diag_steps: 10
+
+outputs_dir: results

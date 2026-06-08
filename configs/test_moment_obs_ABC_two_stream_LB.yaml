@@ -1,0 +1,84 @@
+name: test_moment_obs_ABC_two_stream_LB
+seed: 0
+
+# Two-stream instability with LB (Lenard-Bernstein) collisions.
+#
+# truth: bimodal Maxwellian f0(v) = 1/2 [M(v-u0) + M(v+u0)] with u0=2,
+# small spatial seed perturbation alpha=0.05 at k=1 (most unstable mode).
+# assim: single Maxwellian with u_star=0, T_star=5 — chosen to MATCH the
+# bimodal truth's bulk u=0 and second moment <v^2>=u0^2+1=5. So the first
+# three moments are equal at t=0 but the kinetic structure is completely
+# different (truth has two streams, assim is unimodal).
+#
+# Goal: as truth develops density structure via two-stream instability
+# (linear growth rate ~ 0.3, saturates around t=10-15), can A/B/C track
+# the moment evolution and reconstruct the phase-space hole pattern in
+# the assim run from moment observations alone?
+#
+# LB (not BGK) is used so the velocity-space dynamics is smooth — BGK's
+# replacement step would erase the trapping-island structure too quickly.
+
+domain:
+  k: 1.0
+  v_min: -8.0
+  v_max: 8.0
+
+truth_ic:
+  kind: two_peak_velocity
+  alpha: 0.05
+  u0: 2.0
+
+assim_ic:
+  kind: wrong_maxwellian
+  rho_amp: 0.0
+  u_star: 0.0
+  T_star: 5.0
+
+pic:
+  Nx: 128
+  Np: 500000
+  dt: 0.05
+  n_steps: 2000      # t = 0 -> 100
+
+collision:
+  kind: lb
+  nu: 0.02
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: none
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: A
+  A:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    V_star: 3.0       # particles span |v| ~ 3, raise V_star from default 1
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+  B:
+    gamma_x: 1.0
+    gamma_v: 1.0
+    gamma_1: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+  C:
+    lam: 1.0
+    V_star: 3.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: ../results

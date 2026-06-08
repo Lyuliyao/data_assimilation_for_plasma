@@ -1,0 +1,49 @@
+#!/bin/bash
+# Bridges-2 RM template for the position_d2tobs (beta) sweep, optionally
+# also varying Np. Writes results/<cfg.name>/p2d_beta_sweep.csv (or the
+# --output path).
+#
+# Submit with (betas + nps + seeds as quoted space-separated lists):
+#   sbatch slurm/sweep_p2d_beta_rm.sb \
+#       configs/test0_identifiability_linear_combined5.yaml \
+#       "0.01 0.1 0.3 1.0" "200000 1000000" "0"
+#
+# Args: CONFIG BETAS NPS SEEDS
+#  - if NPS is "" the script falls back to cfg.pic.Np
+
+#SBATCH --job-name=mfda-p2d-beta
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=12:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:?config yaml required}"
+BETAS="${2:?betas required as quoted space-separated list}"
+NPS="${3:-}"
+SEEDS="${4:-0}"
+
+# shellcheck disable=SC2086
+if [[ -n "${NPS}" ]]; then
+    srun python scripts/sweep_p2d_beta.py \
+        --config "${CONFIG}" \
+        --betas ${BETAS} \
+        --nps ${NPS} \
+        --seeds ${SEEDS}
+else
+    srun python scripts/sweep_p2d_beta.py \
+        --config "${CONFIG}" \
+        --betas ${BETAS} \
+        --seeds ${SEEDS}
+fi

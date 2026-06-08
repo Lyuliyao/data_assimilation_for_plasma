@@ -1,0 +1,40 @@
+#!/bin/bash
+# Bridges-2 RM template: run truth-only at several Np values back-to-back.
+# Outputs go to results/<cfg.name>__np<Np>/truth.npz so multiple Np values
+# coexist for the smoothing study.
+#
+# Submit with (Nps as quoted space-separated list):
+#   sbatch slurm/truth_np_sweep_rm.sb \
+#       configs/test0_identifiability_strong.yaml "200000 1000000 5000000"
+#
+# Args: CONFIG NPS
+
+#SBATCH --job-name=mfda-truth-np
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=12:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:?config yaml required}"
+NPS="${2:?Nps required as quoted space-separated list}"
+
+# shellcheck disable=SC2086
+for NP in ${NPS}; do
+    echo "=== truth Np=${NP} ==="
+    srun python scripts/run_truth.py \
+        --config "${CONFIG}" \
+        --np "${NP}" \
+        --name-suffix "__np${NP}"
+done

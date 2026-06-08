@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mfda"
+version = "0.1.0"
+description = "Mean-field data assimilation for Vlasov-Poisson via potential-only nudging"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Liyao", email = "liyaolyu@gmail.com" }]
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pyyaml>=6.0",
+    "matplotlib>=3.8",
+    "pydantic>=2.5",
+    "tqdm>=4.66",
+    "h5py>=3.10",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "black>=24", "ruff>=0.5"]
+# WarpX is installed separately on Bridges-2 (module or conda-forge). Listed
+# here only as an optional marker so `pip install -e .[warpx]` is a no-op in CI.
+warpx = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "NPY"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

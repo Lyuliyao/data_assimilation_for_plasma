@@ -1,0 +1,67 @@
+# Test 0 STABLE + combined nudge (Phase C).
+# Mirrors test0_identifiability_stable.yaml plus the full eqs. 17-18.
+#
+# Reference floors: snapshot position e_phi=0.073, e_f=1.528;
+# velocity_dtobs e_phi=0.125, e_f=1.670.
+
+name: test0_identifiability_stable_combined
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: two_peak_velocity
+  alpha: 0.5
+  u0: 2.0
+
+assim_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.5
+  sigma: 1.0
+
+pic:
+  Nx: 128
+  Np: 1000000
+  dt: 1.0e-2
+  n_steps: 4000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  lowpass_k_cut_frac: 0.40
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

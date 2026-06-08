@@ -1,0 +1,34 @@
+#!/bin/bash
+# Bridges-2 RM template for an assimilated run (truth + assim in lock-step),
+# reference backend. Accepts config + nudging variant as positional args.
+#
+# Submit with:
+#   sbatch slurm/assim_rm.sb configs/test1_linear_landau.yaml velocity 1.0
+#   sbatch slurm/assim_rm.sb configs/test1_linear_landau.yaml position 1.0
+
+#SBATCH --job-name=mfda-assim
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=04:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:-configs/test1_linear_landau.yaml}"
+VARIANT="${2:-velocity}"
+GAMMA="${3:-1.0}"
+
+srun python scripts/run_assimilation.py \
+    --config "${CONFIG}" \
+    --nudge "${VARIANT}" \
+    --gamma "${GAMMA}"

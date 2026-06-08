@@ -1,0 +1,52 @@
+#!/bin/bash
+# Bridges-2 RM template for run_assim_from_obs.py.
+#
+# Submit with:
+#   sbatch slurm/run_assim_from_obs_rm.sb \
+#       results/position_mismatch \
+#       configs/test_position_mismatch.yaml \
+#       phi_dphi_d2phi
+#
+# Args: TRUTH_DIR  CONFIG  MODE  [GAMMA] [ALPHA] [BETA] [EPSILON] [THETA] [OUTPUT_DIR]
+
+#SBATCH --job-name=assim-from-obs
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=06:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+TRUTH_DIR="${1:?truth dir required}"
+CONFIG="${2:?config yaml required}"
+MODE="${3:?mode required (none|phi|phi_dphi|phi_dphi_d2phi)}"
+GAMMA="${4:-1.0}"
+ALPHA="${5:-1.0}"
+BETA="${6:-0.01}"
+EPSILON="${7:-0.001}"
+THETA="${8:-1.0471975511965976}"   # pi/3
+OUTPUT_DIR="${9:-}"
+
+ARGS=( "--truth-dir" "${TRUTH_DIR}"
+       "--config"    "${CONFIG}"
+       "--mode"      "${MODE}"
+       "--gamma"     "${GAMMA}"
+       "--alpha"     "${ALPHA}"
+       "--beta"      "${BETA}"
+       "--epsilon"   "${EPSILON}"
+       "--theta"     "${THETA}" )
+if [[ -n "${OUTPUT_DIR}" ]]; then
+    ARGS+=( "--output-dir" "${OUTPUT_DIR}" )
+fi
+
+srun python scripts/run_assim_from_obs.py "${ARGS[@]}"

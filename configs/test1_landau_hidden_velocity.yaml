@@ -1,0 +1,56 @@
+# Test 1 — linear Landau damping, *hidden-velocity* assim IC (eq. 18).
+#
+# Same truth as `test1_linear_landau.yaml` (weakly-perturbed Maxwellian,
+# α=1e-3, k=0.5), but the assimilated run starts from a two-peak velocity
+# distribution with u₀ (same spatial density as truth).
+# This is the strongest probe of e_f recovery: ρ matches at t=0 by
+# construction but the velocity distribution is bimodal instead of
+# Maxwellian. Any reduction of e_f from baseline is a genuine velocity-space
+# recovery from potential-only observation.
+
+name: test1_landau_hidden_velocity
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_hidden_velocity
+  alpha: 1.0e-3
+  u0: 1.0
+
+pic:
+  Nx: 128
+  Np: 1000000
+  dt: 1.0e-2
+  n_steps: 4000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+
+nudge:
+  variant: velocity
+  gamma: 1.0
+  lowpass_k_cut_frac: 0.25
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

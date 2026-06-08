@@ -1,0 +1,73 @@
+# Test 0 LINEAR + combined nudge (Phase C).
+# Mirrors test0_identifiability_linear.yaml but with the full eqs. 17-18:
+# position_snapshot + position_dtobs (bilinear) + velocity_dtobs.
+# velocity_snapshot is OFF by default per docs/combined_nudge_amendment.md
+# §3.3; flip it on for ablations.
+#
+# Phase A on this regime hit e_phi=0.0059 (alpha=10) but e_f stayed at 1.218.
+# The bilinear position_dtobs term is the only place v-dependence enters; if
+# this combined config does not move e_f below 1.21, the implementation is
+# correct but the linear regime is intrinsically information-poor (per the
+# original Phase A interpretation).
+
+name: test0_identifiability_linear_combined
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: two_peak_velocity
+  alpha: 1.0e-3
+  u0: 1.5
+
+assim_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-3
+  sigma: 1.0
+
+pic:
+  Nx: 128
+  Np: 200000
+  dt: 1.0e-2
+  n_steps: 2000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  lowpass_k_cut_frac: 0.25
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

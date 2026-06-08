@@ -1,0 +1,93 @@
+name: test_moment_obs_ABC_ic_density_phase_v2
+seed: 0
+
+# Density phase mismatch v2: louder + longer + with persistent driver.
+#
+# Versus v1 (alpha=0.1, BGK nu=0.05, no driver, t=50):
+#  - alpha 0.1 -> 0.3       (3x larger initial mismatch)
+#  - BGK nu  0.05 -> 0.01   (5x slower collisional damping)
+#  - F_ext now nonzero: identical on both sides, k_d=1.0 omega_d=2.0
+#    (Bohm-Gross at k=1, well-separated from the IC mode at k=0.5)
+#  - t  50 -> 100           (longer window for persistent dynamics)
+#
+# truth: rho(x,0) = 1 + 0.3 cos(k x),       k=0.5, T=1, u=0
+# model: rho(x,0) = 1 + 0.3 cos(k x + pi),  same T, u
+# Both see F_ext(x,t) = 0.2 sin(1.0 x - 2.0 t).
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_phase_error
+  alpha: 0.3
+  theta0: 3.141592653589793   # pi (anti-phase)
+
+pic:
+  Nx: 128
+  Np: 500000
+  dt: 0.05
+  n_steps: 2000               # t = 0 -> 100
+  backend: reference
+
+collision:
+  kind: bgk
+  nu: 0.01
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: off_resonance_wave
+  E0: 0.2
+  k_d: 1.0
+  omega_d: 2.0                # Bohm-Gross at k=1 (truly_resonant convention)
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: A
+  A:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    V_star: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+  A_var:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+  B:
+    gamma: 1.0
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+  C:
+    lam: 1.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: ../results

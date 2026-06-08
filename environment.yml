@@ -1,0 +1,25 @@
+# Conda environment for local / reference-backend work.
+# On Bridges-2, prefer loading the site-provided WarpX/AMReX module and then
+# `pip install -e .` on top of that environment.
+name: mfda
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy>=1.26
+  - scipy>=1.11
+  - matplotlib>=3.8
+  - pyyaml>=6.0
+  - pydantic>=2.5
+  - tqdm>=4.66
+  - h5py>=3.10
+  - pytest>=8
+  - black>=24
+  - ruff>=0.5
+  - pip
+  - pip:
+      # WarpX wheel from the ECP-WarpX builds (CPU). On Bridges-2 the GPU build
+      # is usually available via module; leave this line commented unless running
+      # on a workstation.
+      # - pywarpx>=24.10
+      # - amrex>=24.10

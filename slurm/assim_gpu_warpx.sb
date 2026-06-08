@@ -1,0 +1,48 @@
+#!/bin/bash
+# Bridges-2 GPU template for an assimilated run on the WarpX backend.
+# Reserved for the production path once backend_warpx.py is implemented.
+#
+# Bridges-2 GPU partitions:
+#   - GPU-shared : 1-4 V100 GPUs on a shared node
+#   - GPU        : whole 8x V100 node (or 8x A100 depending on reservation)
+# 1D1V ES is tiny, so GPU-shared with 1 GPU is sufficient.
+
+#SBATCH --job-name=mfda-assim-gpu
+#SBATCH --partition=GPU-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=5
+#SBATCH --gres=gpu:v100-32:1
+#SBATCH --time=04:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+# TODO: #SBATCH -A <your-allocation>
+
+set -euo pipefail
+mkdir -p logs results
+
+# TODO: module loads. A working recipe might look like:
+# module purge
+# module load cuda/11.8.0
+# module load openmpi/4.0.5-gcc10.2.0
+# module load anaconda3
+# conda activate mfda-warpx
+#
+# Or install pywarpx in a venv:
+#   python -m venv ~/envs/mfda-warpx
+#   source ~/envs/mfda-warpx/bin/activate
+#   pip install pywarpx[cuda] numpy scipy matplotlib pyyaml pydantic tqdm h5py
+#   pip install -e .
+
+CONFIG="${1:-configs/test1_linear_landau.yaml}"
+VARIANT="${2:-velocity}"
+GAMMA="${3:-1.0}"
+
+# Require the backend in the config to be 'warpx' for this submission.
+# You can override from the CLI by editing run_assimilation.py to accept
+# a --backend flag when needed.
+
+srun python scripts/run_assimilation.py \
+    --config "${CONFIG}" \
+    --nudge "${VARIANT}" \
+    --gamma "${GAMMA}"

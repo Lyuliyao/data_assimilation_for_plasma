@@ -1,0 +1,87 @@
+name: test_moment_obs_2D_wavepacket_phase
+seed: 0
+
+# 2D2V density-phase mismatch + 2D oblique Gaussian wavepacket driver.
+#
+# Domain: (kx, ky) = (1, 1) -> Lx = Ly = 2 pi. Box is one wavelength of the
+# IC density modulation in each direction (oblique cos pattern).
+#
+# truth IC: rho(x, y, 0) = 1 + 0.3 cos(x + y), Maxwellian (sigma = 1).
+# model IC: rho(x, y, 0) = 1 - 0.3 cos(x + y) (anti-phase, theta0 = pi).
+# Same v marginal on both sides.
+#
+# Driver: oblique wavepacket
+#   F_ext = -grad U_ext,  U_ext = A exp(-(t - t0)^2 / (2 sigma_t^2))
+#                                   cos(kx_d x + ky_d y - omega t).
+#   (kx_d, ky_d) = (1, 1) (aligned with IC mode), omega = 1 (~omega_p).
+#   t0 = 35, sigma_t = 12 (active band roughly t in [11, 59]).
+#
+# BGK ν=0.01. T = 100 (n_steps = 2000).
+
+domain:
+  kx: 1.0
+  ky: 1.0
+
+truth_ic:
+  kind: perturbed_maxwellian_2d
+  alpha: 0.3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_phase_error_2d
+  alpha: 0.3
+  theta0: 3.141592653589793
+  sigma: 1.0
+
+pic:
+  Nx: 64
+  Ny: 64
+  Np: 200000
+  dt: 0.05
+  n_steps: 2000
+
+collision:
+  kind: bgk
+  nu: 0.01
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: oblique_wavepacket
+  A: 0.05
+  kx_d: 1.0
+  ky_d: 1.0
+  omega: 1.0
+  t0: 35.0
+  sigma_t: 12.0
+  theta: 0.0
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: A_var
+  A_var:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+  B:
+    gamma: 1.0
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+
+diagnostics:
+  every_diag_steps: 10
+
+outputs_dir: results

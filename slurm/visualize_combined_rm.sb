@@ -1,0 +1,32 @@
+#!/bin/bash
+# Bridges-2 RM template for the combined-nudge visualisation: re-runs the
+# truth + 3 assim variants in lock-step with snapshot saves to produce
+# phase-space and velocity-marginal figures.
+#
+# Submit with:
+#   sbatch slurm/visualize_combined_rm.sb \
+#       configs/test0_identifiability_strong_combined.yaml
+#
+# Args: CONFIG
+
+#SBATCH --job-name=mfda-viz-combined
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=06:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:?config yaml required}"
+
+srun python scripts/visualize_combined.py --config "${CONFIG}"

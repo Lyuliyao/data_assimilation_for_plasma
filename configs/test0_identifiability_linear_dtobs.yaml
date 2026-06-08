@@ -1,0 +1,61 @@
+# Test 0 LINEAR + time-derivative observation (Phase A acceptance config).
+# Mirrors configs/test0_identifiability_linear.yaml, plus the augmented
+# observation channel from docs/time_derivative_observation_plan.md.
+#
+# Snapshot-only velocity-nudge in this regime hit e_f floor ~1.219 across
+# the full gamma sweep (results/test0/identifiability_floor_table.csv).
+# Phase A passes if this config — at some alpha in [0.1, 10.0] — moves
+# e_f below 1.21.
+
+name: test0_identifiability_linear_dtobs
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: two_peak_velocity
+  alpha: 1.0e-3
+  u0: 1.5
+
+assim_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-3
+  sigma: 1.0
+
+pic:
+  Nx: 128
+  Np: 200000
+  dt: 1.0e-2
+  n_steps: 2000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+
+nudge:
+  variant: velocity
+  gamma: 1.0
+  lowpass_k_cut_frac: 0.25
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

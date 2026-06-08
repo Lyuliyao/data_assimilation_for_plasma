@@ -1,0 +1,73 @@
+# Test 0 ASYMMETRIC TRUTH + combined nudge (Phase C — secondary acceptance).
+# Per docs/combined_nudge_amendment.md §6: every Test 0 / Test 1 config to
+# date had j_truth = j_assim = 0 by ±v symmetry, so the dtobs channel had
+# limited leverage.  Replacing the symmetric two-peak truth with an
+# asymmetric one (u_pos=1.5, u_neg=-1.0, w_pos=0.5) gives
+#     j_truth(x) = 0.25 * rho_0(x)  != 0
+# while keeping the assim IC a Maxwellian with j_assim ≡ 0. This is the
+# clean test of whether the velocity_dtobs + position_dtobs channels do
+# what the math says they do.
+
+name: test0_asymmetric_combined
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: asymmetric_two_peak
+  alpha: 0.5
+  u_pos: 1.5
+  u_neg: -1.0
+  w_pos: 0.5
+
+assim_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.5
+  sigma: 1.0
+
+pic:
+  Nx: 128
+  Np: 1000000
+  dt: 1.0e-2
+  n_steps: 4000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  lowpass_k_cut_frac: 0.40
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

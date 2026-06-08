@@ -1,0 +1,86 @@
+name: test_moment_obs_2D_wavepacket_phase_v2
+seed: 0
+
+# v2 of the 2D wavepacket + density phase mismatch.
+# Versus v1: lower IC wavenumber for slower Landau damping; resonant
+# (Bohm-Gross) driver; stronger and longer wavepacket; weaker BGK; longer T.
+#
+# Domain: (kx, ky) = (0.5, 0.5) -> Lx = Ly = 4 pi.
+#   |k_IC| = sqrt(0.5) ~ 0.71.
+#   Bohm-Gross at T=1: omega^2 = 1 + 3 |k|^2 T = 2.5 -> omega ~ 1.581.
+#   Period ~ 4. Landau damping much weaker than at |k|=sqrt(2) (= v1).
+#
+# truth IC: rho(x, y, 0) = 1 + 0.3 cos(0.5 x + 0.5 y).
+# model IC: anti-phase (theta0 = pi).
+#
+# Driver: oblique resonant wavepacket
+#   kx_d = ky_d = 0.5, omega = 1.581 (BG resonance)
+#   A = 0.1 (2x v1), t0 = 50, sigma_t = 20 (active band ~ [10, 90] in T = 150)
+
+domain:
+  kx: 0.5
+  ky: 0.5
+
+truth_ic:
+  kind: perturbed_maxwellian_2d
+  alpha: 0.3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_phase_error_2d
+  alpha: 0.3
+  theta0: 3.141592653589793
+  sigma: 1.0
+
+pic:
+  Nx: 64
+  Ny: 64
+  Np: 200000
+  dt: 0.05
+  n_steps: 3000              # T = 150
+
+collision:
+  kind: bgk
+  nu: 0.005                  # weak
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: oblique_wavepacket
+  A: 0.1
+  kx_d: 0.5
+  ky_d: 0.5
+  omega: 1.581               # BG at |k|=sqrt(0.5), T=1
+  t0: 50.0
+  sigma_t: 20.0
+  theta: 0.0
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: A_var
+  A_var:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+  B:
+    gamma: 1.0
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+
+diagnostics:
+  every_diag_steps: 10
+
+outputs_dir: results

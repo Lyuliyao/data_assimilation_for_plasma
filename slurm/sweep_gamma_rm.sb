@@ -1,0 +1,40 @@
+#!/bin/bash
+# Bridges-2 RM template for a gamma sweep over a single (config, variant).
+# Writes results/<cfg.name>/gamma_sweep_<variant>.csv.
+#
+# Submit with (gammas as a quoted space-separated list):
+#   sbatch slurm/sweep_gamma_rm.sb configs/test0_identifiability_stable.yaml \
+#          velocity "0.0 0.25 0.5 1.0 2.0 4.0" "0 1 2"
+#
+# Args: CONFIG VARIANT GAMMAS [SEEDS]
+
+#SBATCH --job-name=mfda-sweep-gamma
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=12:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:?config yaml required}"
+VARIANT="${2:?variant required (velocity|position|none)}"
+GAMMAS="${3:?gammas required as quoted space-separated list}"
+SEEDS="${4:-0}"
+
+# Word-split the quoted gammas/seeds back into argv lists for argparse.
+# shellcheck disable=SC2086
+srun python scripts/sweep_gamma.py \
+    --config "${CONFIG}" \
+    --variant "${VARIANT}" \
+    --gammas ${GAMMAS} \
+    --seeds ${SEEDS}

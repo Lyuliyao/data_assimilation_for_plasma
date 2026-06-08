@@ -1,0 +1,40 @@
+#!/bin/bash
+# Bridges-2 RM template for the combined-nudge (gamma, alpha) sweep on a
+# single config. Writes results/<cfg.name>/combined_sweep.csv.
+#
+# Submit with (gammas + alphas + seeds as quoted space-separated lists):
+#   sbatch slurm/sweep_combined_rm.sb \
+#       configs/test0_identifiability_strong_combined.yaml \
+#       "1.0" "1.0" "0"
+#
+# Args: CONFIG GAMMAS ALPHAS [SEEDS]
+
+#SBATCH --job-name=mfda-sweep-combined
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=12:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:?config yaml required}"
+GAMMAS="${2:?gammas required as quoted space-separated list}"
+ALPHAS="${3:?alphas required as quoted space-separated list}"
+SEEDS="${4:-0}"
+
+# shellcheck disable=SC2086
+srun python scripts/sweep_combined.py \
+    --config "${CONFIG}" \
+    --gammas ${GAMMAS} \
+    --alphas ${ALPHAS} \
+    --seeds ${SEEDS}

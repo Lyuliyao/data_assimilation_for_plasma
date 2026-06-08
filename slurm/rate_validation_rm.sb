@@ -1,0 +1,36 @@
+#!/bin/bash
+# Bridges-2 RM template for the E1 homogeneous-Maxwellian rate validation
+# (Prop 5.1/5.2, Table 2). Runs none/aot/A/B/C on a homogeneous target and
+# fits the e_u, e_T decay rates; writes results/<name>/{rate_summary.csv,
+# rate_curves.png, SUMMARY.md}.
+#
+# Submit with:
+#   sbatch slurm/rate_validation_rm.sb configs/exp1_homogeneous_rate.yaml
+
+#SBATCH --job-name=mfda-rate-val
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=02:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+# Bridges-2: an interactive/OnDemand parent shell can export SLURM_MEM_PER_CPU,
+# which conflicts with this script's --mem (SLURM_MEM_PER_NODE) at srun time.
+# Single-task job -> run python directly (no srun) and clear the stale hints.
+unset SLURM_MEM_PER_CPU SLURM_MEM_PER_NODE SLURM_MEM_PER_GPU 2>/dev/null || true
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:-configs/exp1_homogeneous_rate.yaml}"
+shift || true   # remaining args forwarded (e.g. --np-override)
+
+python scripts/run_rate_validation.py --config "${CONFIG}" "$@"

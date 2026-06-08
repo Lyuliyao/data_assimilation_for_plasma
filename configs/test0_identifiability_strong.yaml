@@ -1,0 +1,59 @@
+# Test 0 — identifiability, STRONG / nonlinear regime.
+# See docs/test0_next_steps.md §1 for the parameter rationale.
+#
+# alpha = 0.5 puts the initial density well into the nonlinear regime, so
+# the O(alpha^2) coupling between the two velocity peaks is not negligible
+# on T ~ 40 / omega_p. u0 = 1.2 sits on the resonant shelf of the two-stream
+# dispersion, so truth vs assim have distinctly different nonlinear phase-
+# space structure. Np = 1e6 tightens the PIC shot-noise floor so the signal
+# is above noise.
+#
+# This config is SLURM-scale (roughly 20x the linear config's runtime);
+# prefer running via slurm/assim_rm.sb rather than interactively.
+
+name: test0_identifiability_strong
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: two_peak_velocity
+  alpha: 0.5        # strong-nonlinear
+  u0: 1.2           # resonant-shelf of two-stream
+
+assim_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.5        # matched rho_0 at t=0
+  sigma: 1.0
+
+pic:
+  Nx: 128
+  Np: 1000000       # 1e6 — tighter shot-noise floor
+  dt: 1.0e-2
+  n_steps: 4000     # T = 40 plasma periods
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+
+nudge:
+  variant: velocity
+  gamma: 1.0
+  lowpass_k_cut_frac: 0.40   # nonlinear regime populates more modes
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

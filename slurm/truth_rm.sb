@@ -1,0 +1,30 @@
+#!/bin/bash
+# Bridges-2 RM (regular-memory CPU) partition template for a truth run on the
+# reference backend. Modify account + modules before submitting.
+#
+# Submit with:   sbatch slurm/truth_rm.sb configs/test1_linear_landau.yaml
+#
+# Docs:  https://www.psc.edu/resources/bridges-2/user-guide/
+
+#SBATCH --job-name=mfda-truth
+#SBATCH --partition=RM-shared           # RM-shared for <= 64 cores / 1 node
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=02:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+# ---- Environment ----
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:-configs/test1_linear_landau.yaml}"
+
+srun python scripts/run_truth.py --config "${CONFIG}"

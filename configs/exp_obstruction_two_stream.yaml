@@ -1,0 +1,67 @@
+# E2a — non-equilibrium (two-stream) truth, recovered from moment observations.
+#
+# Truth = two-stream f*(x,v) ∝ v^2 exp(-v^2/2) (1 + alpha cos kx): a genuinely
+#   NON-Maxwellian state (dip at v=0). Observed moments: rho≈1, u≈0, T_eff=3.
+# Assim = wrong Maxwellian (single-hump, wrong u and T).
+# Weak BGK so collisions do not immediately erase structure. No driver.
+#
+# Question: can moment-nudging (A/B/C/AOT) recover a non-Maxwellian truth?
+# Expect: the MOMENT errors (e_u, e_T) recover, but e_f (full shape) is the
+# discriminator — this is the setup that motivates the naive-KL obstruction
+# contrast (naive KL toward pi_obs would Maxwellianize and drive e_f UP).
+name: exp_obstruction_two_stream
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -8.0
+  v_max: 8.0
+
+truth_ic:
+  kind: two_stream
+  alpha: 0.05
+
+assim_ic:
+  kind: wrong_two_stream
+  u_star: 0.3
+  T_star: 2.0
+
+pic:
+  Nx: 128
+  Np: 500000
+  dt: 0.05
+  n_steps: 600        # T_max = 30
+  backend: reference
+
+collision:
+  kind: bgk
+  nu: 0.01            # weak: does not immediately Maxwellianize
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: none
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: C
+  A: { gamma_1: 1.0, gamma_2: 1.0, gamma_3: 1.0, V_star: 1.0,
+       lowpass_k_cut_frac: 0.25, lowpass_sharpness: 16.0 }
+  B: { gamma_x: 1.0, gamma_v: 1.0, gamma_1: 1.0, gamma_2: 1.0, gamma_3: 1.0,
+       lowpass_k_cut_frac: 0.25, lowpass_sharpness: 16.0 }
+  C: { lam: 1.0, use_weighted_metric: true, V_star: 1.0,
+       rho_floor: 1.0e-3, T_floor: 1.0e-3 }
+  aot: { mu_rho: 1.0, mu_u: 1.0, mu_T: 1.0,
+         lowpass_k_cut_frac: 0.25, lowpass_sharpness: 16.0 }
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: ../results

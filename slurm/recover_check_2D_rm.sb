@@ -1,0 +1,29 @@
+#!/bin/bash
+# Bridges-2 RM template for the 2D2V recover-check (none / A_var / B).
+#
+# Submit with:
+#   sbatch slurm/recover_check_2D_rm.sb \
+#       configs/test_moment_obs_2D_wavepacket_phase.yaml
+
+#SBATCH --job-name=mfda-recover-2D
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=04:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:-configs/test_moment_obs_2D_wavepacket_phase.yaml}"
+shift || true
+
+srun python scripts/run_recover_check_2D.py --config "${CONFIG}" "$@"

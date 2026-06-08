@@ -1,0 +1,83 @@
+name: test_moment_obs_ABC_damped_langmuir
+seed: 0
+
+# Damped Langmuir relaxation under Dougherty collisions.
+# Dougherty == Lenard-Bernstein operator (both names are used in the literature):
+#     Q(f) = nu * d_v[(v-u) f + T d_v f].
+#
+# truth: perturbed_maxwellian alpha=0.1, sigma=1 — small Langmuir wave seed
+#        at the fundamental k=0.5. Wave oscillates at omega ~ 1.32
+#        (Bohm-Gross with T=1, k=0.5) and damps under Dougherty (NOT Landau).
+# assim: wrong_maxwellian rho_amp=0, u_star=0, T_star=1 — matched bulk and
+#        T, but no wave. Test: can A/B/C inject the matching wave into assim
+#        from moment observations only?
+#
+# Numbers:
+#   omega(k=0.5, T=1) = sqrt(1 + 3 * 0.25 * 1) ~ 1.32   (period ~ 4.76)
+#   Dougherty damping rate ~ nu * k^2 * T / (2 omega^2) ~ 0.014
+#   Over t=75 we see ~16 oscillation periods and ~1 e-folding of damping.
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.1
+  sigma: 1.0
+
+assim_ic:
+  kind: wrong_maxwellian
+  rho_amp: 0.0
+  u_star: 0.0
+  T_star: 1.0
+
+pic:
+  Nx: 128
+  Np: 500000
+  dt: 0.05
+  n_steps: 1500       # t = 0 -> 75
+  backend: reference
+
+collision:
+  kind: lb            # Dougherty
+  nu: 0.2
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: none
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: A
+  A:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    V_star: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+  B:
+    gamma_x: 1.0
+    gamma_v: 1.0
+    gamma_1: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+  C:
+    lam: 1.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: ../results

@@ -1,0 +1,32 @@
+#!/bin/bash
+# Bridges-2 RM template for the nudge-then-free experiment.
+# Runs all 4 formulations × 2 modes (always-nudged vs nudge-then-free)
+# on a single config, and writes the comparison artifacts.
+#
+# Submit with:
+#   sbatch slurm/nudge_then_free_rm.sb \
+#       configs/test_moment_obs_ABC_driven_BGK_truly_resonant.yaml \
+#       --nudge-fraction 0.5
+
+#SBATCH --job-name=mfda-nudge-then-free
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=03:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:-configs/test_moment_obs_ABC_driven_BGK_truly_resonant.yaml}"
+shift || true
+
+srun python scripts/run_nudge_then_free.py --config "${CONFIG}" "$@"

@@ -1,0 +1,103 @@
+# Test 1 TEMPERATURE-ERROR + 5-channel combined nudge (Phase D3 mid-tier).
+#
+# This config sits between the phi-only-identifiable success case
+# (test1_phase_error_combined5) and the v-shape unidentifiable failure
+# cases (test0_*_combined5). It is the cleanest test of whether the
+# time_second_derivative observation channel (p2d / v2d) can recover a
+# pure sigma mismatch.
+#
+# Truth: perturbed Maxwellian, sigma=1, alpha=1e-3 cos(kx).
+# Assim: ic_temperature_error (eq. 17) — Maxwellian sigma_0=1.2 with the
+#        same cos(kx) perturbation. Spatial density rho_0 matches truth at
+#        t=0 by construction; only the velocity-marginal width differs.
+#
+# Why this should work in principle:
+#   M = integral v^2 f dv = n*sigma^2 (Maxwellian, u=0). Truth M=1, assim M=1.44.
+#   The momentum equation gives d_t J = -d_x M - rho E, so d_t^2 phi
+#   directly observes M(x,t). The velocity_d2tobs channel applies the
+#   force -2 gamma beta U H_2(psi_2) which is linear in U — the only
+#   channel of the five that can change v-marginal variance. Tuning beta
+#   should drive sigma_assim toward sigma_truth and hence e_f toward the
+#   shot-noise floor.
+#
+# Single-channel reference (Phase A, position-nudge gamma=1.0, Np=1e6):
+#   mode-1: 0.0884 (vs truth 0.0882 — basically perfect)
+#   e_phi:  0.00359 (3.7x below baseline 0.00719)
+#   e_f:    0.298 (no movement; v-marginal width unchanged)
+# Acceptance for 5-channel: e_f drops noticeably below 0.3 on at least one
+# stable cell in the (Np, beta) sweep. Lower bound: ~0.04 (shot-noise
+# floor at Np=1e6); even halving the gap (e_f ~ 0.17) is a clear win.
+
+name: test1_temperature_combined5
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_temperature_error
+  alpha: 1.0e-3
+  sigma0: 1.2
+
+pic:
+  Nx: 128
+  Np: 1000000        # sweep overrides via --nps
+  dt: 1.0e-2
+  n_steps: 4000      # T = 40, matches strong5 / asymm5 / phase_error5
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+  time_second_derivative:
+    enabled: true
+    lowpass_k_cut_frac: 0.15
+    lowpass_sharpness: 16.0
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  position_d2tobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 0.01     # swept by sweep_p2d_beta.py via --betas
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_d2tobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  lowpass_k_cut_frac: 0.25
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

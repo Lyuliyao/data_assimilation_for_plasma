@@ -1,0 +1,93 @@
+# Test 0 ASYMMETRIC TRUTH + 5-channel combined nudge (Phase D3).
+# All five channels of v12 §1 / second_derivative_observation_plan.md §1.3:
+#   ps  = position_snapshot      (-gamma * H1(psi_0)        in dY)
+#   pd  = position_dtobs         (-gamma*alpha * U * H2(psi_1) in dY, bilinear)
+#   p2d = position_d2tobs (NEW)  (-gamma*beta * [U^2 H3(psi_2)
+#                                + d/dx(E H1(psi_2)) + H1(chi)] in dY)
+#   vd  = velocity_dtobs         (-gamma*alpha * H1(psi_1)  in dU)
+#   v2d = velocity_d2tobs        (-2 gamma*beta * U * H2(psi_2) in dU)
+#
+# velocity_snapshot is OFF — same convention as Phase C combined defaults.
+#
+# D1 result (4-channel, no p2d) on this config: e_f = 0.947 (worse than
+# combined-3's 0.923). The doc's pitfall §4.5 hypothesis was that without
+# the bilinear-quadratic position counterpart, the v2d term destabilises
+# the v-marginal. D3 tests that hypothesis.
+#
+# Acceptance gate: e_f < 0.84 (snapshot-position floor on this IC).
+
+name: test0_asymmetric_combined5
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: asymmetric_two_peak
+  alpha: 0.5
+  u_pos: 1.5
+  u_neg: -1.0
+  w_pos: 0.5
+
+assim_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.5
+  sigma: 1.0
+
+pic:
+  Nx: 128
+  Np: 1000000
+  dt: 1.0e-2
+  n_steps: 4000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+  time_second_derivative:
+    enabled: true
+    lowpass_k_cut_frac: 0.15
+    lowpass_sharpness: 16.0
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  position_d2tobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0   # interpreted as beta
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_d2tobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0   # interpreted as beta
+  lowpass_k_cut_frac: 0.40
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

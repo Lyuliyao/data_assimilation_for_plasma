@@ -1,0 +1,75 @@
+name: test_moment_obs_ABC_driven_BGK_truly_resonant_rhomis09
+seed: 0
+
+# Variant of rhomis with rho_amp=0.9: trough density 0.1, peak 1.9.
+# Pushes the IC into the "near-vacuum trough" regime where BGK and
+# Bregman C feel the rho_floor. This is the strongest IC density
+# mismatch we can probe before numerical floors dominate.
+
+domain:
+  k: 0.5
+  v_min: -12.0
+  v_max: 12.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-2
+  sigma: 1.0
+
+assim_ic:
+  kind: wrong_maxwellian
+  rho_amp: 0.9        # 90% modulation; trough 0.1, peak 1.9
+  u_star: 0.3
+  T_star: 1.5
+
+pic:
+  Nx: 128
+  Np: 500000
+  dt: 0.05
+  n_steps: 1000
+  backend: reference
+
+collision:
+  kind: bgk
+  nu: 0.05
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: off_resonance_wave
+  E0: 0.2
+  k_d: 1.0
+  omega_d: 2.0
+
+moment_observation:
+  kind: full
+  every_q: 10
+  rng_seed: 0
+
+moment_nudge:
+  formulation: A
+  A:
+    gamma_1: 1.0
+    gamma_2: 1.0
+    gamma_3: 1.0
+    V_star: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+  B:
+    gamma_x: 1.0
+    gamma_v: 1.0
+    gamma_1: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+  C:
+    lam: 1.0
+    rho_floor: 1.0e-3
+    T_floor: 1.0e-3
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: ../results

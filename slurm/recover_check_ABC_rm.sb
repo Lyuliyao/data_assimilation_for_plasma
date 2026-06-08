@@ -1,0 +1,37 @@
+#!/bin/bash
+# Bridges-2 RM template for the four-formulation recover-check
+# (note v3 §3 ABC). Runs none/A/B/C in series on the same config and
+# writes results/<name>/{*.npz, error_curves.png, velocity_kde.png,
+# phase_space.png, recover_summary.csv, SUMMARY.md}.
+#
+# Submit with:
+#   sbatch slurm/recover_check_ABC_rm.sb \
+#       configs/test_moment_obs_ABC_driven_BGK.yaml
+
+#SBATCH --job-name=mfda-recover-ABC
+#SBATCH --partition=RM-shared
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=30G
+#SBATCH --time=04:00:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH -A mth210003p
+
+set -euo pipefail
+mkdir -p logs results
+
+# Bridges-2: an interactive/OnDemand parent shell can export SLURM_MEM_PER_CPU,
+# which conflicts with this script's --mem (SLURM_MEM_PER_NODE) at srun time.
+# Single-task job -> run python directly (no srun) and clear the stale hints.
+unset SLURM_MEM_PER_CPU SLURM_MEM_PER_NODE SLURM_MEM_PER_GPU 2>/dev/null || true
+
+module load anaconda3/2024.10-1
+source /opt/packages/anaconda3-2024.10-1/etc/profile.d/conda.sh
+conda activate mfda
+
+CONFIG="${1:-configs/test_moment_obs_ABC_driven_BGK.yaml}"
+shift || true   # remaining args forwarded to the script (e.g. --nu-override 0.02)
+
+python scripts/run_recover_check_ABC.py --config "${CONFIG}" "$@"

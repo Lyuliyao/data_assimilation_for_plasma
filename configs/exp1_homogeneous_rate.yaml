@@ -1,0 +1,67 @@
+# E1 — homogeneous-Maxwellian rate validation (Prop 5.1 / 5.2, Table 2).
+#
+# Truth  = homogeneous Maxwellian M_{1, 0, 1}      (alpha=0 -> uniform density).
+# Assim  = wrong homogeneous Maxwellian M_{1, 0.3, 1.5}.
+# No driver, no collisions: the moment-error decay is then PURE NUDGING, so the
+# measured e_u, e_T decay rates should match the linearized theory:
+#   Formulation C : e_u ~ e^{-(gamma/T*) t},  e_T ~ e^{-(2 gamma/T*) t}  (fixed 1:2)
+#   Formulations A/B/AOT : tunable rates (1:1 at the default unit gains).
+# every_q=1 so the discrete nudge approximates the continuous-time ODE.
+name: exp1_homogeneous_rate
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -8.0
+  v_max: 8.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 0.0          # homogeneous (uniform density)
+  sigma: 1.0          # T_truth = T* = 1
+
+assim_ic:
+  kind: wrong_maxwellian
+  rho_amp: 0.0        # homogeneous
+  u_star: 0.3         # wrong bulk velocity
+  T_star: 1.5         # wrong temperature
+
+pic:
+  Nx: 32
+  Np: 500000
+  dt: 0.02
+  n_steps: 500        # T_max = 10
+  backend: reference
+
+collision:
+  kind: none          # pure-nudging rate test
+  nu: 0.0
+  rho_floor: 1.0e-3
+  T_floor: 1.0e-3
+
+driver:
+  kind: none
+
+moment_observation:
+  kind: full
+  every_q: 1          # continuous-time limit for rate matching
+  rng_seed: 0
+
+moment_nudge:
+  formulation: C      # overridden per-run by the rate-validation script
+  A: { gamma_1: 1.0, gamma_2: 1.0, gamma_3: 1.0, V_star: 1.0,
+       lowpass_k_cut_frac: 0.25, lowpass_sharpness: 16.0 }
+  B: { gamma_x: 1.0, gamma_v: 1.0, gamma_1: 1.0, gamma_2: 1.0, gamma_3: 1.0,
+       lowpass_k_cut_frac: 0.25, lowpass_sharpness: 16.0 }
+  C: { lam: 1.0, use_weighted_metric: true, V_star: 1.0,
+       rho_floor: 1.0e-3, T_floor: 1.0e-3 }
+  aot: { mu_rho: 1.0, mu_u: 1.0, mu_T: 1.0,
+         lowpass_k_cut_frac: 0.25, lowpass_sharpness: 16.0 }
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 2     # fine time resolution for the rate fit
+
+outputs_dir: ../results

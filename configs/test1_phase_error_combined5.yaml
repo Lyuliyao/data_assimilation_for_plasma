@@ -1,0 +1,100 @@
+# Test 1 PHASE-ERROR + 5-channel combined nudge (Phase D3 success pair).
+#
+# This is the success-side counterpart to the test0 identifiability suite
+# (linear / strong / asymmetric _combined5). All four configs share the same
+# 5-channel observation+nudge stack (ps + pd + p2d + vd + v2d) so that the
+# only thing that changes between "success" and "failure" is the IC pair —
+# which controls whether f is identifiable from phi-only observation.
+#
+# Truth: perturbed Maxwellian, sigma=1, alpha=1e-3 cos(kx).
+# Assim: ic_phase_error (eq. 16) — Maxwellian sigma=1, alpha=1e-3 cos(kx + theta_0)
+#         with theta_0 = 0.5 rad.
+#
+# Why this should succeed where test0 fails:
+#   The truth f and the assim f are both members of the same Maxwellian
+#   family (n=1, u=0, sigma=1). They differ only in the *phase* of the
+#   density perturbation, which is a single scalar fully determined by
+#   the phi(x,t) trace. The identifiability null space is empty. Compare
+#   to test0 hidden-velocity, where f_truth is bimodal and f_assim is
+#   Maxwellian — the v-marginal width and bimodality is invisible to phi.
+#
+# Single-channel reference (Phase A, position-nudge gamma=1.0, Np=1e6):
+#   e_phi: 0.0044 (3x below baseline 0.013)
+#   e_f:   0.0885 (vs PIC shot-noise floor ~0.09 — i.e. saturated)
+# 5-channel result expected here: e_phi at or below 1e-3, e_f at the
+# shot-noise floor on every stable cell. Acceptance: e_f stable across
+# the full beta sweep with no NaN at beta=1.0 (unlike test0 which NaN's).
+
+name: test1_phase_error_combined5
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_phase_error
+  alpha: 1.0e-3
+  theta0: 0.5
+
+pic:
+  Nx: 128
+  Np: 1000000        # sweep overrides via --nps
+  dt: 1.0e-2
+  n_steps: 4000      # T = 40, matches strong5 / asymm5
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+  time_second_derivative:
+    enabled: true
+    lowpass_k_cut_frac: 0.15
+    lowpass_sharpness: 16.0
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  position_d2tobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 0.01     # swept by sweep_p2d_beta.py via --betas
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_d2tobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  lowpass_k_cut_frac: 0.25
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

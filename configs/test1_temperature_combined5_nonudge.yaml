@@ -1,0 +1,62 @@
+# No-nudge baseline for the temperature5_best comparison.
+# Same truth + assim ICs as test1_temperature_combined5_best.yaml, but
+# every nudge channel is disabled (Maxwellian sigma_0=1.2 assim drifts
+# freely with no correction). Used to draw the "no nudging" curve in
+# the M_total(t) figure.
+
+name: test1_temperature_combined5_nonudge
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_temperature_error
+  alpha: 1.0e-3
+  sigma0: 1.2
+
+pic:
+  Nx: 128
+  Np: 1000000
+  dt: 1.0e-2
+  n_steps: 4000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+
+nudge:
+  position_snapshot:
+    enabled: false
+  position_dtobs:
+    enabled: false
+  position_d2tobs:
+    enabled: false
+  velocity_snapshot:
+    enabled: false
+  velocity_dtobs:
+    enabled: false
+  velocity_d2tobs:
+    enabled: false
+  lowpass_k_cut_frac: 0.25
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results

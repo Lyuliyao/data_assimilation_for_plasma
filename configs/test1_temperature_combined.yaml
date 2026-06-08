@@ -1,0 +1,85 @@
+# Test 1 TEMPERATURE-ERROR + 3-channel combined nudge (ablation row).
+#
+# Pairs with test1_temperature_combined5.yaml. The two configs differ only
+# in whether the second-derivative channels (p2d, v2d) and the corresponding
+# time_second_derivative observation are active. This config has them OFF.
+#
+# Channels here: ps + pd + vd (Phase C 3-channel pattern).
+# Observation here: phi + d_t phi (no d_t^2 phi).
+#
+# Hypothesis being tested: ⟨v⟩ = 0 in both truth and assim, so the first
+# time derivative carries no useful identifiability information about the
+# σ mismatch. e_f should NOT improve materially over the snapshot-only
+# baseline. This is the *negative control* for the d2tobs channels — if
+# e_f does drop here, the d2tobs success in combined5 (if any) might not
+# be coming from the channel we think.
+#
+# Single-channel reference (Phase A, position-nudge): e_f = 0.298.
+# Snapshot baseline on this IC needs to be computed if not on file.
+# Expected here: e_f comparable to or slightly worse than 0.298 (extra
+# vd channel can pump unnecessary noise into v). A clean drop would be a
+# red flag for the theoretical interpretation.
+
+name: test1_temperature_combined
+
+seed: 0
+
+domain:
+  k: 0.5
+  v_min: -6.0
+  v_max: 6.0
+
+truth_ic:
+  kind: perturbed_maxwellian
+  alpha: 1.0e-3
+  sigma: 1.0
+
+assim_ic:
+  kind: ic_temperature_error
+  alpha: 1.0e-3
+  sigma0: 1.2
+
+pic:
+  Nx: 128
+  Np: 1000000
+  dt: 1.0e-2
+  n_steps: 4000
+  backend: reference
+
+observation:
+  kind: full
+  sigma: 0.0
+  every_m: 1
+  every_q: 1
+  reconstruction: fourier
+  time_derivative:
+    enabled: true
+    alpha: 1.0
+    lowpass_k_cut_frac: 0.25
+    lowpass_sharpness: 16.0
+    j_source: continuity
+  # time_second_derivative explicitly omitted.
+
+nudge:
+  position_snapshot:
+    enabled: true
+    gamma: 1.0
+  position_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  velocity_dtobs:
+    enabled: true
+    gamma: 1.0
+    alpha: 1.0
+  # position_d2tobs and velocity_d2tobs explicitly omitted.
+  lowpass_k_cut_frac: 0.40
+  lowpass_sharpness: 16.0
+
+diagnostics:
+  phase_space_Nx: 64
+  phase_space_Nv: 64
+  fourier_n_modes: 6
+  every_diag_steps: 10
+
+outputs_dir: results
