@@ -34,11 +34,11 @@ def load(d: pathlib.Path, forms):
 
 JOBS = [
     # (subdir, forms, error_fig, vkde_fig, vmin, vmax)
-    ("test_moment_obs_ABC_driven_BGK", ["none", "aot", "A", "B", "C"],
+    ("test_moment_obs_ABC_driven_BGK", ["none", "A", "B", "C"],
      "e2_driven_err.png", "e2_driven_vkde.png", -8, 8),
-    ("test_moment_obs_ABC_driven_BGK_truly_resonant", ["none", "aot", "A", "B", "C"],
+    ("test_moment_obs_ABC_driven_BGK_truly_resonant", ["none", "A", "B", "C"],
      "e3_resonant_err.png", None, -12, 12),
-    ("exp_obstruction_two_stream", ["none", "aot", "A", "B", "C", "naive_kl"],
+    ("exp_obstruction_two_stream", ["none", "A", "B", "C", "naive_kl"],
      None, "e_obstruction_vkde.png", -8, 8),
 ]
 

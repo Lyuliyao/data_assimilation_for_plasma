@@ -29,7 +29,7 @@ import numpy as np
 from mfda.config_2d import load_moment_2d
 
 
-FORMULATIONS = ["none", "aot", "A", "B", "C"]
+FORMULATIONS = ["none", "A", "B", "C"]
 
 
 def _git_sha() -> str:

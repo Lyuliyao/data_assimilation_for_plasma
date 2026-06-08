@@ -4,7 +4,7 @@ Reads the fitted decay rates from homogeneous rate-validation runs at several
 nudging strengths and plots, per formulation, the velocity/temperature rates
 and their ratio against the strength. Formulation C should show rates that
 scale linearly with the strength while the ratio stays pinned at 2 (the
-Fisher-Rao value, independent of the strength); A/B/AOT scale similarly but at
+Fisher-Rao value, independent of the strength); A/B scale similarly but at
 a tunable, non-canonical ratio.
 
 Usage:
@@ -54,7 +54,7 @@ def main() -> None:
     gs = [float(x) for x in args.strengths.split(",")]
 
     fig, (axr, axq) = plt.subplots(1, 2, figsize=figsz(1.0, 0.42))
-    for fm in ("aot", "A", "C"):
+    for fm in ("A", "B", "C"):
         ru = []; rt = []; rq = []
         for g in gs:
             u, t, q = _rates(_dir(args.base, g) / "rate_summary.csv", fm)
@@ -72,7 +72,7 @@ def main() -> None:
     fig.tight_layout(); Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out, bbox_inches=None); plt.close(fig)
     print(f"wrote {args.out}")
-    for fm in ("aot", "A", "C"):
+    for fm in ("A", "B", "C"):
         print(f"  {fm}: " + ", ".join(
             f"g={g}:ratio={_rates(_dir(args.base, g)/'rate_summary.csv', fm)[2]:.3g}" for g in gs))
 

@@ -8,15 +8,17 @@ Reference implementation and reproducibility scripts for the paper
 The code assimilates **hydrodynamic-moment observations** (density `ρ`, bulk velocity
 `u`, temperature `T`) directly into a particle-in-cell (PIC) Vlasov–Poisson(–collisions)
 simulation by a continuous **nudging** (Azouani–Olson–Titi-type) correction applied to
-the particle pusher. Four feedback laws are implemented and compared:
+the particle pusher. Three feedback laws are compared against the unassimilated run:
 
 | key   | scheme | description |
 |-------|--------|-------------|
 | `A`   | Formulation A | velocity-weighted Wasserstein gradient flow of the quadratic moment loss (recommended) |
 | `B`   | Formulation B | direction-split, well-posed variant |
 | `C`   | Formulation C | information-geometric (KL) feedback with a parameter-free 1:2 velocity-to-temperature rate ratio |
-| `aot` | AOT | constant-gain Azouani–Olson–Titi baseline |
 | `none`| — | unassimilated reference run |
+
+A constant-gain (`aot`) kernel is also present in `nudging_moments.py` but is not used
+in the paper.
 
 A small numpy/scipy **1D1V and 2D2V electrostatic-PIC reference backend** is included, so
 every result in the paper reproduces with no external dependencies beyond numpy/scipy/

@@ -3,8 +3,8 @@
 Reads results/<base>_seed{0..K}/recover_summary.csv, computes the mean and
 standard deviation of the late-window improvement ratios
 e_x(late, formulation) / e_x(late, none) across seeds, and prints a table plus
-a bar chart with error bars. Establishes whether the A-vs-AOT margin is
-statistically meaningful.
+a bar chart with error bars. Establishes whether the A-vs-none margin is
+statistically meaningful and whether A and B are distinguishable.
 
 Usage:
     python scripts/aggregate_seeds.py \
@@ -23,7 +23,7 @@ apply_style()
 import numpy as np
 
 METRICS = ["e_rho", "e_u", "e_T", "e_f"]
-FORMS = ["none", "aot", "A", "B", "C"]
+FORMS = ["none", "A", "B", "C"]
 
 
 def _read(csv_path: Path) -> dict:
@@ -81,7 +81,7 @@ def main() -> None:
     MLAB = {"e_rho": r"$e_\rho$", "e_u": r"$e_u$", "e_T": r"$e_T$", "e_f": r"$e_f$"}
     fig, axes = plt.subplots(1, 2, figsize=figsz(1.0, 0.50))
     for ax, m in zip(axes, ["e_u", "e_T"]):
-        fs = [f for f in ["aot", "A", "B", "C"] if m in stats[f]]
+        fs = [f for f in ["A", "B", "C"] if m in stats[f]]
         mus = [stats[f][m][0] for f in fs]; sds = [stats[f][m][1] for f in fs]
         bars = ax.bar(fs, mus, yerr=sds, capsize=6,
                       color=[COLORS[f] for f in fs], alpha=0.85,

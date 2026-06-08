@@ -1,12 +1,12 @@
 """E1 — homogeneous-Maxwellian moment-convergence rate validation.
 
 Validates the linearized rate predictions of the paper (Prop 5.1/5.2, Table 2)
-on a homogeneous-Maxwellian target. Runs none/aot/A/B/C on the same config and
+on a homogeneous-Maxwellian target. Runs none/A/B/C on the same config and
 fits the exponential decay rates of e_u(t) and e_T(t). The headline check is the
 *ratio* rate_T / rate_u:
 
-    Formulation C        -> 2.0   (fixed 1:2, Fisher-Rao geometry, Prop 5.2)
-    Formulations A/B/AOT -> ~1.0  (tunable; 1:1 at unit gains, Table 2)
+    Formulation C      -> 2.0   (fixed 1:2, Fisher-Rao geometry, Prop 5.2)
+    Formulations A/B   -> ~1.0  (tunable; 1:1 at unit gains, Table 2)
 
 Usage:
     python scripts/run_rate_validation.py --config configs/exp1_homogeneous_rate.yaml
@@ -35,9 +35,9 @@ import numpy as np
 from mfda.assimilation_moments import run_moments
 from mfda.config import load_moment
 
-FORMULATIONS = ["none", "aot", "A", "B", "C"]
+FORMULATIONS = ["none", "A", "B", "C"]
 # Predicted rate ratio rate_T / rate_u at the default unit gains.
-PREDICTED_RATIO = {"none": float("nan"), "aot": 1.0, "A": 1.0, "B": 1.0, "C": 2.0}
+PREDICTED_RATIO = {"none": float("nan"), "A": 1.0, "B": 1.0, "C": 2.0}
 FIT_T_LO = 0.3   # skip the initial discrete-kick transient
 
 
@@ -106,7 +106,6 @@ def main() -> None:
         cfg.moment_nudge.C.lam = g
         cfg.moment_nudge.A.gamma_1 = cfg.moment_nudge.A.gamma_2 = cfg.moment_nudge.A.gamma_3 = g
         cfg.moment_nudge.B.gamma_x = cfg.moment_nudge.B.gamma_v = g
-        cfg.moment_nudge.aot.mu_rho = cfg.moment_nudge.aot.mu_u = cfg.moment_nudge.aot.mu_T = g
         overrides["strength"] = g
     if args.np_override is not None:
         cfg.pic.Np = args.np_override
